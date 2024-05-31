@@ -13,9 +13,6 @@ function buildGrid() {
     const width = 10;
     const height = 15;
 
-    const buttonApple = document.getElementById("button-apple");
-    buttonApple.onclick = () => spawnApple(rows);
-
     for (let y = 0; y < height; y++) {
         
         const tableRow = document.createElement("tr");
@@ -81,7 +78,6 @@ function main() {
     const playPause = () => { if (running) pauseGame(); else unpauseGame(); };
     snakePositions.forEach(position => rows[position[1]][position[0]].classList.add("snake-cell-snake"));
 
-    // document.getElementById("button-move").onclick = () => moveSnake(rows, snakePositions, direction, true, loseGame);
 
     document.getElementById("button-control-left").onclick = moveLeft;
     document.getElementById("button-control-down").onclick = moveDown;
@@ -216,22 +212,6 @@ function calcApplePosition(width, height, snakePositions) {
         }
         return candidates[r];
     }
-}
-
-function spawnApple(rows) {
-    // const rows = [[document.createElement("td")], []];
-    const height = rows.length;
-    const width = rows[0].length;
-
-    let randX = Math.floor(Math.random() * width);
-    let randY = Math.floor(Math.random() * height);
-
-    do {
-        console.log(randX, randY);
-    } while(false);
-
-    rows[randY][randX].classList.add("snake-cell-apple");
-
 }
 
 
