@@ -39,12 +39,14 @@ function main() {
 
     const snakePositions = [[0, 2], [0, 1], [0, 0]];  // a queue
     let direction = "down";
-    // let applePosition = [3, 4];
     
     let running = false;
     let intervalId = undefined
-
+    let points = 0;
     const rows = buildGrid();
+
+    let [appleX, appleY] = calcApplePosition(rows[0].length, rows.length, snakePositions);
+    rows[appleY][appleX].classList.add("snake-cell-apple");
 
     const pauseGame = () => {
         running = false;
@@ -56,12 +58,20 @@ function main() {
         console.log("Game Over");
         pauseGame()
     }
+    const eatApple = () => {
+        rows[appleY][appleX].classList.remove("snake-cell-apple");
+        [appleX, appleY] = calcApplePosition(rows[0].length, rows.length, snakePositions);
+        rows[appleY][appleX].classList.add("snake-cell-apple");
+        points++;
+        document.getElementById("points-display").innerHTML = `${points}`;
+    }
+
 
     const unpauseGame = () => {
         running = true;
         intervalId = setInterval(() => {
-            moveSnake(rows, snakePositions, direction, false, loseGame);
-        }, 500)
+            moveSnake(rows, snakePositions, direction, loseGame, eatApple);
+        }, 350)
     }
 
     const moveLeft = () => { if (direction !== "right") direction = "left"; };
@@ -71,7 +81,7 @@ function main() {
     const playPause = () => { if (running) pauseGame(); else unpauseGame(); };
     snakePositions.forEach(position => rows[position[1]][position[0]].classList.add("snake-cell-snake"));
 
-    document.getElementById("button-move").onclick = () => moveSnake(rows, snakePositions, direction, true, loseGame);
+    // document.getElementById("button-move").onclick = () => moveSnake(rows, snakePositions, direction, true, loseGame);
 
     document.getElementById("button-control-left").onclick = moveLeft;
     document.getElementById("button-control-down").onclick = moveDown;
@@ -121,10 +131,9 @@ function main() {
  * @param {Array} rows 
  * @param {Array} snakePositions 
  * @param {string} direction 
- * @param {boolean} extendSnake 
  * @param {function} loseGame called when game is lost, snake goes in wall or itself
  */
-function moveSnake(rows, snakePositions, direction, extendSnake, loseGame) {
+function moveSnake(rows, snakePositions, direction, loseGame, eatApple) {
     const [currentX, currentY] = snakePositions[0];  // head of snake
     let nextX = currentX;
     let nextY = currentY;
@@ -151,11 +160,15 @@ function moveSnake(rows, snakePositions, direction, extendSnake, loseGame) {
         if (cell === undefined){
             loseGame();
         } else {
-            cell.classList.add("snake-cell-snake");
-            if (!extendSnake) {
-                const [tailX, tailY] = snakePositions.pop()
+            if (cell.classList.contains("snake-cell-snake")) {
+                loseGame();
+            } else if (cell.classList.contains("snake-cell-apple")) {
+                eatApple();
+            } else {
+                const [tailX, tailY] = snakePositions.pop();
                 rows[tailY][tailX].classList.remove("snake-cell-snake");
             }
+            cell.classList.add("snake-cell-snake");
         }
     }
 
@@ -181,8 +194,28 @@ function createCell(id) {
  * @param {number} height 
  * @param {Array} snakePositions 
  */
-function makeApplePosition(width, height, snakePositions) {
-    
+function calcApplePosition(width, height, snakePositions) {
+    const candidates = []
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+            candidates.push([x, y]);
+        }
+    }
+    loop:
+    while (candidates.length > 0) {
+        const r = Math.floor(Math.random() * candidates.length);
+        const [rx, ry] = candidates[r];
+        for (let snakePosition of snakePositions) {
+            // if apple is in snake, try again
+            const [snakeX, snakeY] = snakePosition;
+            if (rx === snakeX && ry === snakeY) {
+                // invalid apple position
+                candidates.splice(r, 1);
+                continue loop;
+            }
+        }
+        return candidates[r];
+    }
 }
 
 function spawnApple(rows) {
