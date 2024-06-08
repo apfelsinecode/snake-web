@@ -11,7 +11,9 @@ function buildGrid() {
 
     const rows = [];
     const width = 10;
-    const height = 15;
+    const height = 10;
+
+    snakeTableBody.textContent = "";
 
     for (let y = 0; y < height; y++) {
         
@@ -48,24 +50,31 @@ function main() {
     let running = false;
     let gameEnded = false;
 
-    // reset does not work
     const resetGame = () => {
+        rows.splice(0, rows.length)
+        rows.push(...buildGrid());
+
         while (snakePositions.length > 0) {
             snakePositions.pop();
         }
         snakePositions.push([0, 2], [0, 1], [0, 0]);
-        snakePositions.push([]);
         lastDirection = "down";
         direction = "down";
         points = 0;
         [appleX, appleY] = calcApplePosition(rows[0].length, rows.length, snakePositions);
         running = false;
         gameEnded = false;
+
+        rows[appleY][appleX].classList.add("snake-cell-apple");
+        snakePositions.forEach(position => rows[position[1]][position[0]].classList.add("snake-cell-snake"));
+
+        document.getElementById("points-display").innerHTML = `${points}`;
     };
 
     let intervalId = undefined;
 
     rows[appleY][appleX].classList.add("snake-cell-apple");
+    snakePositions.forEach(position => rows[position[1]][position[0]].classList.add("snake-cell-snake"));
 
     const pauseGame = () => {
         running = false;
@@ -104,7 +113,6 @@ function main() {
     const moveUp = () => { if (lastDirection !== "down") direction = "up"; };
     const moveRight = () => { if (lastDirection !== "left") direction = "right"; };
     const playPause = () => { if (running) pauseGame(); else unpauseGame(); };
-    snakePositions.forEach(position => rows[position[1]][position[0]].classList.add("snake-cell-snake"));
 
 
     document.getElementById("button-control-left").onclick = moveLeft;
