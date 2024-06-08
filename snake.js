@@ -34,47 +34,75 @@ function buildGrid() {
 
 function main() {
 
-    const snakePositions = [[0, 2], [0, 1], [0, 0]];  // a queue
-    let direction = "down";
-    
-    let running = false;
-    let intervalId = undefined
-    let points = 0;
     const rows = buildGrid();
 
+    const snakePositions = [[0, 2], [0, 1], [0, 0]];  // a queue
+
+    let lastDirection = "down";
+    let direction = "down";
+
+    let points = 0;
+
     let [appleX, appleY] = calcApplePosition(rows[0].length, rows.length, snakePositions);
+
+    let running = false;
+    let gameEnded = false;
+
+    // reset does not work
+    const resetGame = () => {
+        while (snakePositions.length > 0) {
+            snakePositions.pop();
+        }
+        snakePositions.push([0, 2], [0, 1], [0, 0]);
+        snakePositions.push([]);
+        lastDirection = "down";
+        direction = "down";
+        points = 0;
+        [appleX, appleY] = calcApplePosition(rows[0].length, rows.length, snakePositions);
+        running = false;
+        gameEnded = false;
+    };
+
+    let intervalId = undefined;
+
     rows[appleY][appleX].classList.add("snake-cell-apple");
 
     const pauseGame = () => {
         running = false;
         clearInterval(intervalId);
-    }
+    };
 
 
     const loseGame = () => {
-        console.log("Game Over");
-        pauseGame()
-    }
+        pauseGame();
+        gameEnded = true;
+    };
+
     const eatApple = () => {
         rows[appleY][appleX].classList.remove("snake-cell-apple");
         [appleX, appleY] = calcApplePosition(rows[0].length, rows.length, snakePositions);
         rows[appleY][appleX].classList.add("snake-cell-apple");
         points++;
         document.getElementById("points-display").innerHTML = `${points}`;
-    }
+    };
 
 
     const unpauseGame = () => {
-        running = true;
-        intervalId = setInterval(() => {
-            moveSnake(rows, snakePositions, direction, loseGame, eatApple);
-        }, 350)
+        if (gameEnded) {
+            resetGame();
+        } else {
+            running = true;
+            intervalId = setInterval(() => {
+                moveSnake(rows, snakePositions, direction, loseGame, eatApple);
+                lastDirection = direction;
+            }, 350)
+        }
     }
 
-    const moveLeft = () => { if (direction !== "right") direction = "left"; };
-    const moveDown = () => { if (direction !== "up") direction = "down"; };
-    const moveUp = () => { if (direction !== "down") direction = "up"; };
-    const moveRight = () => { if (direction !== "left") direction = "right"; };
+    const moveLeft = () => { if (lastDirection !== "right") direction = "left"; };
+    const moveDown = () => { if (lastDirection !== "up") direction = "down"; };
+    const moveUp = () => { if (lastDirection !== "down") direction = "up"; };
+    const moveRight = () => { if (lastDirection !== "left") direction = "right"; };
     const playPause = () => { if (running) pauseGame(); else unpauseGame(); };
     snakePositions.forEach(position => rows[position[1]][position[0]].classList.add("snake-cell-snake"));
 
